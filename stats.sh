@@ -1,5 +1,12 @@
-#! /bin/bash
+#!/bin/bash
 # script measurecost <CONTAINER>
+
+if [ -z $1 ]
+then
+    echo "Syntax: $0 <container>"
+    exit 1
+fi
+
 #Get container name
 CONTAINER=$1
 sleep 0.1
@@ -11,16 +18,23 @@ echo "" > $FILE
 ##get container's current status
 status="$(docker inspect --format '{{.State.Status}}' $CONTAINER)"
 ##echo "$status"
+
+if [ "$status" = "" ]
+then
+    echo "Container '$CONTAINER' not found!"
+    exit 1
+fi
+
 ##wait for container to be running
 while [ $status != "running" ]
 do
-    sleep 0.1
+    sleep 0.001
     status="$(docker inspect --format '{{.State.Status}}' $CONTAINER)"
 done
 ##loop: while the container is running, get the current memory usage into the aux file
 while [ $status != "exited" ]
 do
-    sleep 0.02
+    sleep 0.001
     mem="$(docker stats --no-stream --format "{{.MemUsage}}" $CONTAINER)"
     echo ${mem%/*} >> aux
     echo "$(date +"%T.%3N"),${mem%/*}" >> $FILE
