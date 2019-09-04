@@ -11,7 +11,10 @@ Both Docker and alternative containerisation technologies will be explored for t
 Measurements of time and memory costs for docker containers.
 
 Running an example (it takes a while and requires a lot of diskspace):
-docker run --name benchmark unimarijo/linux-benchmarks & ./stats.sh benchmark
+./measure-image.sh unimarijo/linux-benchmarks
 
 Running another, simpler example:
-(docker run --name hello hello-world & ./stats.sh hello); docker rm hello
+./measure-image.sh yyekhlef/sleep
+
+Running another, short-lived example [currently breaks measurements!]:
+./measure-image.sh hello-world
