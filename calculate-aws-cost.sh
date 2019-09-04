@@ -62,5 +62,11 @@ else
 fi
 
 #Print results
-echo "The total cost for AWS Lambda for $AWS_REQUESTS million requests per month would be `printf "%.2f" $AWS_COST`"
+echo "The total cost for AWS Lambda for $AWS_REQUESTS million requests per month would be $`printf "%.2f" $AWS_COST`"
 
+#Calculate waste
+DURATION_WASTE=$(($AWS_DURATION*100-$DURATION))
+MEMORY_WASTE="$(($AWS_MEMORY-$MEMORY))"
+
+echo "$DURATION_WASTE milliseconds of computation time are being wasted."
+echo "$MEMORY_WASTE MB of memory are being wasted"
