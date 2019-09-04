@@ -47,9 +47,12 @@ done
 MEMORY=$(sort -k 1 -h aux | tail -n 1)
 
 ##print found value
-echo 'max memory usage:' "$MEMORY"
+echo "Max memory usage: $MEMORY bytes"
 
 #Obtain runtime in ms
 START=$(date --date=$(docker inspect --format='{{.State.StartedAt}}' $CONTAINER) +%s%3N)
 STOP=$(date --date=$(docker inspect --format='{{.State.FinishedAt}}' $CONTAINER) +%s%3N)
-echo 'container runtime:' $(($STOP-$START)) milliseconds
+DURATION=$(($STOP-$START))
+echo "Container runtime: $DURATION milliseconds"
+
+./calculate-aws-cost.sh 1000000 $DURATION $MEMORY 
