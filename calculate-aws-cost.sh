@@ -23,7 +23,8 @@ else
 fi
 
 #Set AWS values
-AWS_REQUESTS="$(ceildiv $NREQUESTS 1000000)"
+#AWS_REQUESTS="$(ceildiv $NREQUESTS 1000000)" Counts only per million of requests
+AWS_REQUESTS=$(bc <<< $NREQUESTS/1000000)
 AWS_DURATION="$(ceildiv $DURATION 100)"
 
 aux_mem=$(($MEMORY-128))
@@ -36,14 +37,15 @@ fi
 
 AWS_MEMORY=$((128+$aws_mult*64))
 
-while read mem freeseconds invocation freerequests compute
+while read mem freeseconds compute freerequests invocation
 do
     if [ "$mem" = "$AWS_MEMORY" ]
     then
         FREE_TIER_SECONDS=$freeseconds
-        COSTCOMPUTE=$invocation
+        COSTCOMPUTE=$compute
+        NET_COSTCOMPUTE=$(bc -l <<< "$compute*$MEMORY/$AWS_MEMORY")
         FREE_REQUESTS=$freerequests
-        COSTINVOCATION=$compute
+        COSTINVOCATION=$invocation
         break
     fi
 done < aws_data/costs.dat
@@ -54,15 +56,21 @@ then
     # Calculate the cost with free requests and computation time
     aux_duration=$(bc <<< $AWS_DURATION*$AWS_REQUESTS*1000000-$FREE_TIER_SECONDS*10)
     aux_requests=$(($AWS_REQUESTS-$FREE_REQUESTS))
+    aux_net_duration=$(bc <<< $DURATION*$AWS_REQUESTS*10000-$FREE_TIER_SECONDS*10)
     
     AWS_COST=$(bc <<< $aux_duration*$COSTCOMPUTE+$aux_requests*$COSTINVOCATION)
+    AWS_NETCOST=$(bc <<< $aux_net_duration*$NET_COSTCOMPUTE+$aux_requests*$COSTINVOCATION)
 else
     # Calculate the cost without free requests and computation time
     AWS_COST=$(bc <<< $AWS_DURATION*$AWS_REQUESTS*1000000*$COSTCOMPUTE+$AWS_REQUESTS*$COSTINVOCATION)
+    AWS_NETCOST=$(bc <<< $DURATION*$AWS_REQUESTS*10000*$NET_COSTCOMPUTE+$AWS_REQUESTS*$COSTINVOCATION)
 fi
+
+OVERHEAD_COST=$(bc <<< $AWS_COST-$AWS_NETCOST)
 
 #Print results
 echo "The total cost for AWS Lambda for $AWS_REQUESTS million requests per month would be $`printf "%.2f" $AWS_COST`"
+echo "The net cost would be $`printf "%.2f" $AWS_NETCOST`, and the overhead cost $`printf "%.2f" $OVERHEAD_COST`"
 
 #Calculate waste
 DURATION_WASTE=$(($AWS_DURATION*100-$DURATION))
