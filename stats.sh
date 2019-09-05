@@ -55,4 +55,4 @@ STOP=$(date --date=$(docker inspect --format='{{.State.FinishedAt}}' $CONTAINER)
 DURATION=$(($STOP-$START))
 echo "Container runtime: $DURATION milliseconds"
 
-./calculate-aws-cost.sh 1000000 $DURATION $MEMORY 
+./calculate-aws-cost.sh $CONTAINER 1000000 $DURATION $MEMORY 

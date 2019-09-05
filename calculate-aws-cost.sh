@@ -1,5 +1,6 @@
 #!/bin/bash
-#syntax: calculate-aws-cost.sh <NREQUESTS> <DURATION> <MEMORY> [FREE]
+#syntax: calculate-aws-cost.sh <CONTAINER> <NREQUESTS> <DURATION> <MEMORY> [FREE]
+# CONTAINER is the name of the container
 # NREQUESTS is the number of requests to calculate the cost on
 # DURATION is the duration of the function (in ms)
 # MEMORY is the total memory in bytes allocated to the function. It will be rounded up to the nearest AWS value available
@@ -11,15 +12,15 @@ ceildiv() {
 }
 
 #Set container arguments
-NREQUESTS=$1
-DURATION=$2
-MEMORY="$(ceildiv $3 1000000)"
+NREQUESTS=$2
+DURATION=$3
+MEMORY="$(ceildiv $4 1000000)"
 
-if [ -z $4 ]
+if [ -z $5 ]
 then
     FREE=false
 else
-    FREE=$4
+    FREE=$5
 fi
 
 #Set AWS values
@@ -78,3 +79,8 @@ MEMORY_WASTE="$(($AWS_MEMORY-$MEMORY))"
 
 echo "$DURATION_WASTE milliseconds of computation time are being wasted."
 echo "$MEMORY_WASTE MB of memory are being wasted"
+
+#Write results into a file
+FILE="$1-results".dat
+#Time(ms)    Memory(MB)    AWS Time(ms)    AWS Memory(ms)    AWS Cost($)    Net cost($)    Overhead cost($)
+echo "$DURATION $MEMORY $AWS_DURATION   $AWS_MEMORY $AWS_COST    $AWS_NETCOST    $OVERHEAD_COST" >> $FILE
