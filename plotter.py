@@ -18,7 +18,7 @@ df["time"] = df["timestamp"].apply(conv).apply(lambda x: x - initms)
 #del df["timestamp"]
 df = df.set_index("time")
 
-df[["memory(MB)"]].plot(title="container memory use over time and microbilling period")
+df[["memory(MB)"]].plot(title="container memory use over time and microbilling period") #This is the line
 
 maxmb = df["memory(MB)"].max()
 possiblembs = [128, 256]

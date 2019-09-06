@@ -61,10 +61,14 @@ then
     
     AWS_COST=$(bc <<< $aux_duration*$COSTCOMPUTE+$aux_requests*$COSTINVOCATION)
     AWS_NETCOST=$(bc <<< $aux_net_duration*$NET_COSTCOMPUTE+$aux_requests*$COSTINVOCATION)
+    PERC_WASTEDTIME=$(bc -l <<< "($aux_net_duration*$COSTCOMPUTE+$aux_requests*$COSTINVOCATION)/$AWS_COST")
+    PERC_WASTEDMEMORY=$(bc -l <<< "($aux_duration*$NET_COSTCOMPUTE+$aux_requests*$COSTINVOCATION)/$AWS_COST")
 else
     # Calculate the cost without free requests and computation time
     AWS_COST=$(bc <<< $AWS_DURATION*$AWS_REQUESTS*1000000*$COSTCOMPUTE+$AWS_REQUESTS*$COSTINVOCATION)
     AWS_NETCOST=$(bc <<< $DURATION*$AWS_REQUESTS*10000*$NET_COSTCOMPUTE+$AWS_REQUESTS*$COSTINVOCATION)
+    PERC_WASTEDTIME=$(bc -l <<< "100*(($DURATION*$AWS_REQUESTS*10000*$COSTCOMPUTE+$AWS_REQUESTS*$COSTINVOCATION)/$AWS_NETCOST)-100")
+    PERC_WASTEDMEMORY=$(bc -l <<< "($AWS_DURATION*$AWS_REQUESTS*1000000*$NET_COSTCOMPUTE+$AWS_REQUESTS*$COSTINVOCATION)/$AWS_NETCOST)")
 fi
 
 OVERHEAD_COST=$(bc <<< $AWS_COST-$AWS_NETCOST)
@@ -72,6 +76,8 @@ OVERHEAD_COST=$(bc <<< $AWS_COST-$AWS_NETCOST)
 #Print results
 echo "The total cost for AWS Lambda for $AWS_REQUESTS million requests per month would be $`printf "%.2f" $AWS_COST`"
 echo "The net cost would be $`printf "%.2f" $AWS_NETCOST`, and the overhead cost $`printf "%.2f" $OVERHEAD_COST`"
+
+echo "`printf "%.2f" $PERC_WASTEDMEMORY`% of the overhead cost is due to wasted memory, and `printf "%.2f" $PERC_WASTEDTIME`% of the overhead cost is due to wasted computation time"
 
 #Calculate waste
 DURATION_WASTE=$(($AWS_DURATION*100-$DURATION))

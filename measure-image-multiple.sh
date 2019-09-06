@@ -13,7 +13,7 @@ autoname=autostats$$
 
 #Create file with the container name
 FILE="$autoname-results".dat
-echo "" > $FILE
+:> $FILE
 
 for i in `seq 1 $2`;
 do

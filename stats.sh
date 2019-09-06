@@ -11,9 +11,9 @@ fi
 CONTAINER=$1
 sleep 0.1
 #Empty the stats aux file
-echo "" > aux
+:> aux
 FILE="$CONTAINER-rawresults".csv
-echo "" > $FILE
+:> $FILE
 
 #Obtain max memory usage
 ##get container's current status
