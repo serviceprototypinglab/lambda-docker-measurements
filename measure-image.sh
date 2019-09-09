@@ -1,7 +1,7 @@
 #!/bin/bash
 # syntax: measure-image.sh <CONTAINERIMAGE> (must be non-interactive!)
 
-if [ -z $1 ]
+if [ -z "$1" ]
 then
     echo "Syntax: $0 <noninteractive-containerimage>"
     exit 1

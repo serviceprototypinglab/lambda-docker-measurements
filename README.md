@@ -18,3 +18,8 @@ Running another, simpler example:
 
 Running another, short-lived example [currently breaks measurements!]:
 ./measure-image.sh hello-world
+
+Running a short example with memory variations (image resizer):
+./measure-image.sh "-v $PWD:/d/ futils/resize SampleJPGImage_15mbmb.jpg 50%"
+A copy of the image to resize must be in the current directory. Sample images can be found in /ref-data
+Percentage can also be changed (works like a minimum)
