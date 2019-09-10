@@ -47,6 +47,8 @@ done
 ##sort memory usage file and get the highest value
 MEMORY=$(sort -k 1 -h aux | tail -n 1)
 
+rm aux
+
 ##print found value
 echo "Max memory usage: $MEMORY bytes"
 
