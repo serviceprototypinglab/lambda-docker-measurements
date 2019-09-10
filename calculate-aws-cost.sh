@@ -88,5 +88,8 @@ echo "$MEMORY_WASTE MB of memory are being wasted"
 
 #Write results into a file
 FILE="$1-results".dat
-#Time(ms)    Memory(MB)    AWS Time(ms)    AWS Memory(ms)    AWS Cost($)    Net cost($)    Overhead cost($)
-echo "$DURATION $MEMORY $AWS_DURATION   $AWS_MEMORY $AWS_COST    $AWS_NETCOST    $OVERHEAD_COST" >> $FILE
+if test -f "$FILE"; then
+    #Time(ms)    Memory(MB)    AWS Time(ms)    AWS Memory(ms)    AWS Cost($)    Net cost($)    Overhead cost($)
+    echo "$DURATION $MEMORY $AWS_DURATION   $AWS_MEMORY $AWS_COST    $AWS_NETCOST    $OVERHEAD_COST" >> $FILE
+fi
+
