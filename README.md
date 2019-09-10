@@ -8,19 +8,59 @@ Both Docker and alternative containerisation technologies will be explored for t
 
 ## Docker measurements
 
-Measurements of time and memory costs for docker containers.
+Measurements of time and memory costs for docker containers, based on AWS Lambda pricing.
 
-Running an example (it takes a while and requires a lot of diskspace):
-./measure-image.sh unimarijo/linux-benchmarks
+### Usage
 
-Running another, simpler example:
-./measure-image.sh yyekhlef/sleep
+To get the AWS cost of an image just once, run
+```
+./measure-image.sh <image-name>
+```
+The image should be non interactive. Check that the image actually exists (either locally or in [Docker Hub](https://hub.docker.com))
 
-Running another, short-lived example [currently breaks measurements!]:
+Further parameters can be added using quotes `""`
+```
+./measure-image.sh "[docker command parameters] <image-name> [image parameters]"
+```
+For an example, see Image resizer below.
+
+After execution, the output will show 
+* Max memory usage, in bytes
+* Container runtime, in milliseconds
+* Total cost to run 1 million requests with AWS Lambda
+* Net and overhead cost
+* How much the price increases due to allocated but unused time and memory
+* Wasted time, in milliseconds
+* Wasted memory, in MB
+
+During execution, the container is asigned the name `autostats-N`, with N being the PID. A .csv file named `autostats-N-rawresults.csv` gets created, containing all the pairs (timestamp, memory usage) observed, which can later be used for plotting.
+
+The created container (not the image) will be removed after execution. 
+
+### Examples
+
+#### Hello world
+Very short-lived example
+```
 ./measure-image.sh hello-world
+```
 
-Running a short example with memory variations (image resizer):
-./measure-image.sh "-v $PWD:/d/ futils/resize SampleJPGImage_15mbmb.jpg 50%"
+#### Sleep
+A simple image with a 30 second sleep function
+```
+./measure-image.sh yyekhlef/sleep
+```
 
-A copy of the image to resize must be in the current directory. Sample images can be found in /ref-data
+#### Image resizer
+Short example with memory variations
+```
+./measure-image.sh "-v $PWD:/d/ futils/resize <image-name.jpg> 50%"
+```
+A copy of the image to resize must be in the current directory. Sample images can be found in `/ref-data`\
 Percentage can also be changed (works like a minimum)
+
+#### Linux benchmarks
+Executes a bunch of benchmark tests (it takes a couple of minutes and requires a lot of diskspace)
+```
+./measure-image.sh unimarijo/linux-benchmarks
+```
