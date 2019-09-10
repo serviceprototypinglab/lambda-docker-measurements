@@ -21,10 +21,13 @@ df = df.set_index("time")
 df[["memory(MB)"]].plot(title="container memory use over time and microbilling period") #This is the line
 
 maxmb = df["memory(MB)"].max()
-possiblembs = (maxmb-128)%64
-maxmbchosen = 128 + 64*possiblembs
-if maxmbchosen > 3008:
-	maxmbchosen = 3008
+if maxmb > 128:
+	possiblembs = (maxmb-128)%64
+	maxmbchosen = 128 + 64*possiblembs
+	if maxmbchosen > 3008:
+		maxmbchosen = 3008
+else:
+	maxmbchosen = 128
 	
 #possiblembs = [128, 192, 256, 320, 384, 448, 512, 576, 640, 704, 768, 832, 896, 960, 1024, 1088, 1152, 1216, 1280, 1344, 1408, 1472, 1536, 1600, 1664]
 #maxmbchosen = possiblembs[0]
