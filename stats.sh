@@ -17,13 +17,14 @@ FILE="$CONTAINER-rawresults".csv
 
 #Obtain max memory usage
 ##get container's current status
-status="$(docker inspect --format '{{.State.Status}}' $CONTAINER)"
+status="$(docker inspect --format '{{.State.Status}}' $CONTAINER 2>/dev/null)"
+
+while [ "$status" = "" ]
+do
+    status="$(docker inspect --format '{{.State.Status}}' $CONTAINER 2>/dev/null)" 
+done
+
 CONTAINERID="$(docker inspect --format '{{.Id}}' $CONTAINER)"
-if [ "$status" = "" ]
-then
-    echo "Container '$CONTAINER' not found!"
-    exit 1
-fi
 
 ##wait for container to be running
 while [ $status != "running" ]
