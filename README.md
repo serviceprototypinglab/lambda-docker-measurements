@@ -35,7 +35,25 @@ After execution, the output will show
 
 During execution, the container is asigned the name `autostats-N`, with N being the PID. A .csv file named `autostats-N-rawresults.csv` gets created, containing all the pairs (timestamp, memory usage) observed, which can later be used for plotting.
 
-The created container (not the image) will be removed after execution. 
+The created container (not the image) will be removed after execution.
+
+
+To run the test on the same image multiple times, run
+```
+./measure-image-multiple.sh <image-name> <number of tests>
+```
+or
+```
+./measure-image-multiple.sh "[docker command parameters] <image-name> [image parameters]" <number of tests>
+```
+An `autostats-N.dat` file will be created containing the results of each test in these columns:
+* Time(ms)
+* Memory(MB)
+* AWS Time(ms)
+* AWS Memory(ms)
+* AWS Cost($)
+* Net cost($)
+* Overhead cost($)
 
 ### Some examples
 
