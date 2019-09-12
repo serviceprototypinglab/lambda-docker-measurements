@@ -14,7 +14,7 @@ ceildiv() {
 #Set container arguments
 NREQUESTS=$2
 DURATION=$3
-MEMORY="$(ceildiv $4 1000000)"
+MEMORY="$(ceildiv $4 1048576)"
 
 if [ -z $5 ]
 then

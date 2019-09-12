@@ -46,7 +46,7 @@ or
 ```
 ./measure-image-multiple.sh "[docker command parameters] <image-name> [image parameters]" <number of tests>
 ```
-An `autostats-N.dat` file will be created containing the results of each test in these columns:
+A file called `autostats-N.dat` will be created containing the results of each test in these columns:
 * Time(ms)
 * Memory(MB)
 * AWS Time(ms)
@@ -75,7 +75,7 @@ Short example with memory variations
 ./measure-image.sh "-v $PWD:/d/ futils/resize <image-name.jpg> 50%"
 ```
 A copy of the image to resize must be in the current directory.\
-Percentage can also be changed (works like a minimum)\
+Percentage can also be changed (works like a minimum)
 
 Some sample images (1, 2 or 5mb) can be downloaded with the `download-sample-image.sh` script in `/ref-data`
 
