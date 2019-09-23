@@ -6,6 +6,9 @@ def conv(x):
 	ts = int(x[0:2]) * 3600 + int(x[3:5]) * 60 + int(x[6:8]) + int(x[9:12]) / 1000
 	return ts
 
+def ceildiv(x, d):
+	return (x + d - 1) // d
+
 if len(sys.argv) != 2:
 	print("Syntax: plotter.py <csvfile>", file=sys.stderr)
 	sys.exit(1)
@@ -18,12 +21,12 @@ df["time"] = df["timestamp"].apply(conv).apply(lambda x: x - initms)
 #del df["timestamp"]
 df = df.set_index("time")
 
-df[["memory(MB)"]].plot(title="container memory use over time and microbilling period") #This is the line
+df[["memory(MB)"]].plot(title="Container memory use over time and microbilling period") #This is the line
 
 maxmb = df["memory(MB)"].max()
 if maxmb > 128:
-	possiblembs = (maxmb-128)%64
-	maxmbchosen = 128 + 64*possiblembs
+	possiblembs = ceildiv(maxmb - 128, 64)
+	maxmbchosen = 128 + 64 * possiblembs
 	if maxmbchosen > 3008:
 		maxmbchosen = 3008
 else:
