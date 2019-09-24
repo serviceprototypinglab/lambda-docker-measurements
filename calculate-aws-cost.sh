@@ -1,10 +1,13 @@
 #!/bin/bash
-#syntax: calculate-aws-cost.sh <CONTAINER> <NREQUESTS> <DURATION> <MEMORY> [FREE]
+#syntax: calculate-aws-cost.sh <CONTAINER> <NREQUESTS> <DURATION> <MEMORY> [FREE] [AWSMEMORY]
 # CONTAINER is the name of the container
 # NREQUESTS is the number of requests to calculate the cost on
 # DURATION is the duration of the function (in ms)
-# MEMORY is the total memory in bytes allocated to the function. It will be rounded up to the nearest AWS value available
+# MEMORY is the total memory in bytes allocated to the function. 
 # FREE is a boolean indicating whether to consider the free AWS requests and computation time or not. By default is false
+# AWSMEMORY is the AWS memory tier used by the function.
+## If not set, it will be rounded up to the nearest AWS value available from MEMORY.
+## If set but tier is non existent, it will be rounded up to the nearest AWS value available from the set value.
 
 # Ceiling division function
 ceildiv() {
@@ -28,7 +31,14 @@ fi
 AWS_REQUESTS=$(bc <<< $NREQUESTS/1000000)
 AWS_DURATION="$(ceildiv $DURATION 100)"
 
-aux_mem=$(($MEMORY-128))
+if [ -z $6 ]
+then
+    aux_mem=$(($MEMORY-128)) 
+else
+    aux_mem="$(ceildiv $6 1048576)"
+    aux_mem=$(($aux_mem-128))
+fi
+
 if [ "$aux_mem" -gt "0" ]
 then
     aws_mult="$(ceildiv $aux_mem 64)"
@@ -74,6 +84,7 @@ fi
 OVERHEAD_COST=$(bc <<< $AWS_COST-$AWS_NETCOST)
 
 #Print results
+echo "The function used $MEMORY MB of memory and was allocated $AWS_MEMORY MB by AWS."
 echo "The total cost for AWS Lambda for $AWS_REQUESTS million requests per month would be $`printf "%.2f" $AWS_COST`"
 echo "The net cost would be $`printf "%.2f" $AWS_NETCOST`, and the overhead cost $`printf "%.2f" $OVERHEAD_COST`"
 

@@ -35,6 +35,8 @@ done
 
 echo "$(date --date=$(docker inspect --format='{{.State.StartedAt}}' $CONTAINER) +"%T.%3N"),0" >> $FILE
 
+AWSMEMORY="$(cat /sys/fs/cgroup/memory/docker/$CONTAINERID/memory.limit_in_bytes)"
+
 ##loop: while the container is running, get the current memory usage into the aux file
 while [ $status != "exited" ]
 do
@@ -63,4 +65,11 @@ echo "$(date --date=$(docker inspect --format='{{.State.FinishedAt}}' $CONTAINER
 
 echo "Container runtime: $DURATION milliseconds"
 
-./calculate-aws-cost.sh $CONTAINER 1000000 $DURATION $MEMORY 
+DOCKERMEMORY="$(cat /sys/fs/cgroup/memory/docker/memory.limit_in_bytes)"
+
+if [ "$DOCKERMEMORY" -eq "$AWSMEMORY" ]
+then
+    ./calculate-aws-cost.sh $CONTAINER 1000000 $DURATION $MEMORY
+else
+    ./calculate-aws-cost.sh $CONTAINER 1000000 $DURATION $MEMORY false $AWSMEMORY
+fi
