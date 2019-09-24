@@ -27,15 +27,16 @@ For an example, see Image resizer below.
 After execution, the output will show 
 * Max memory usage, in bytes
 * Container runtime, in milliseconds
+* Memory used in MB and memory allocated by AWS
 * Total cost to run 1 million requests with AWS Lambda
 * Net and overhead cost
 * How much the price increases due to allocated but unused time and memory
 * Wasted time, in milliseconds
 * Wasted memory, in MB
 
-During execution, the container is asigned the name `autostats-N`, with N being the PID. A .csv file named `autostats-N-rawresults.csv` gets created, containing all the pairs (timestamp, memory usage) observed, which can later be used for plotting.
+During execution, the container is asigned the name `autostatsN`, with N being the PID. A .csv file named `autostatsN-rawresults.csv` gets created, containing all the pairs (timestamp, memory usage) observed, which can later be used for plotting.
 
-The created container (not the image) will be removed after execution.
+The created container (not the image) will be removed after execution, and it's name will be displayed.
 
 
 To run the test on the same image multiple times, run
