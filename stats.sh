@@ -33,6 +33,8 @@ do
     status="$(docker inspect --format '{{.State.Status}}' $CONTAINER)"
 done
 
+echo "$(date --date=$(docker inspect --format='{{.State.StartedAt}}' $CONTAINER) +"%T.%3N"),0" >> $FILE
+
 ##loop: while the container is running, get the current memory usage into the aux file
 while [ $status != "exited" ]
 do
@@ -56,6 +58,9 @@ echo "Max memory usage: $MEMORY bytes"
 START=$(date --date=$(docker inspect --format='{{.State.StartedAt}}' $CONTAINER) +%s%3N)
 STOP=$(date --date=$(docker inspect --format='{{.State.FinishedAt}}' $CONTAINER) +%s%3N)
 DURATION=$(($STOP-$START))
+
+echo "$(date --date=$(docker inspect --format='{{.State.FinishedAt}}' $CONTAINER) +"%T.%3N"),0" >> $FILE
+
 echo "Container runtime: $DURATION milliseconds"
 
 ./calculate-aws-cost.sh $CONTAINER 1000000 $DURATION $MEMORY 
