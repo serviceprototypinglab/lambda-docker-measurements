@@ -59,19 +59,19 @@ A file called `autostats-N.dat` will be created containing the results of each t
 ### Some examples
 
 #### Hello world
-Very short-lived example
+Very short-lived example ([link](https://hub.docker.com/_/hello-world))
 ```
 ./measure-image.sh hello-world
 ```
 
 #### Sleep
-A simple image with a 30 second sleep function
+A simple image with a 30 second sleep function ([link](https://hub.docker.com/r/yyekhlef/sleep))
 ```
 ./measure-image.sh yyekhlef/sleep
 ```
 
 #### Image resizer
-Short example with memory variations
+Short example with memory variations ([link](https://hub.docker.com/r/futils/resize))
 ```
 ./measure-image.sh "-v $PWD:/d/ futils/resize <image-name.jpg> 50%"
 ```
@@ -81,7 +81,7 @@ Percentage can also be changed (works like a minimum)
 Some sample images (1, 2 or 5mb) can be downloaded with the `download-sample-image.sh` script in `/ref-data`
 
 #### Linux benchmarks
-Executes a bunch of benchmark tests (it takes a couple of minutes and requires a lot of diskspace)
+Executes a bunch of benchmark tests (it takes a couple of minutes and requires a lot of diskspace) ([link](https://hub.docker.com/r/unimarijo/linux-benchmarks))
 ```
 ./measure-image.sh unimarijo/linux-benchmarks
 ```
