@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import pylab
 import pandas as pd
 import sys
@@ -9,21 +11,67 @@ def conv(x):
 def ceildiv(x, d):
 	return (x + d - 1) // d
 
-if len(sys.argv) != 2:
-	print("Syntax: plotter.py <csvfile>", file=sys.stderr)
+if len(sys.argv) < 2:
+	print("Syntax: plotter.py <csvfile> [<csvfile>...]", file=sys.stderr)
 	sys.exit(1)
 
-df = pd.read_csv(sys.argv[1], header=None, names=["timestamp", "memory(MB)"])
+csvfiles = sys.argv[1:]
 
-df["memory(MB)"] /= 1048576
-initms = conv(df["timestamp"][0])
-df["time"] = df["timestamp"].apply(conv).apply(lambda x: x - initms)
-#del df["timestamp"]
-df = df.set_index("time")
+ax = None
+maxmb = None
+maxms = None
+hull = {}
+l = "memory(MB)*"
+for csvfile in csvfiles:
+    df = pd.read_csv(csvfile, header=None, names=["timestamp", "memory(MB)"])
 
-df[["memory(MB)"]].plot(title="Container memory use over time and microbilling period") #This is the line
+    df["memory(MB)"] /= 1048576
+    initms = conv(df["timestamp"][0])
+    df["time"] = df["timestamp"].apply(conv).apply(lambda x: x - initms)
+    #del df["timestamp"]
+    df = df.set_index("time")
 
-maxmb = df["memory(MB)"].max()
+    if len(csvfiles) == 1:
+        ax = df[["memory(MB)"]].plot() #This is the line
+    else:
+        # avoid multiple labels
+        if not ax:
+            fig = pylab.figure()
+            ax = fig.add_subplot(1, 1, 1)
+        ax.plot(df.index, df["memory(MB)"], color=(0.6, 0.6, 0.6), label=l)
+        l = ""
+
+    maxmblocal = df["memory(MB)"].max()
+    if maxmb is None or maxmblocal > maxmb:
+        maxmb = maxmblocal
+
+    maxmslocal = df.index[-1]
+    if maxms is None or maxmslocal > maxms:
+        maxms = maxmslocal
+
+    if len(csvfiles) > 1:
+        for row in df.iterrows():
+            htime = int(row[0] * 10) / 10
+            mem = row[1]["memory(MB)"]
+            #print("-", mem, "@", row[0], "→", htime)
+            if not htime in hull or mem > hull[htime]:
+                hull[htime] = mem
+
+if hull:
+    hull = {k: hull[k] for k in sorted(hull)}
+    print("Hull", hull)
+    ax.plot(hull.keys(), hull.values(), color=(0, 0, 0), linewidth=3, label="memory-hull")
+    uhull = {}
+    hkeys = list(hull.keys())
+    scaletime = 2
+    for i in range(len(hkeys)):
+        scale = 0
+        if i < len(hkeys) - scaletime:
+            if hull[hkeys[i + scaletime]] > hull[hkeys[i]]:
+                scale = hull[hkeys[i + scaletime]] - hull[hkeys[i]]
+        uhull[hkeys[i]] = hull[hkeys[i]] + scale
+    ax.plot(uhull.keys(), uhull.values(), color=(0.6, 0, 0), linewidth=2, label="memory-hull-upscale")
+
 if maxmb > 128:
 	possiblembs = ceildiv(maxmb - 128, 64)
 	maxmbchosen = 128 + 64 * possiblembs
@@ -31,17 +79,17 @@ if maxmb > 128:
 		maxmbchosen = 3008
 else:
 	maxmbchosen = 128
+
+maxmschosen = (int(maxms * 10) + 1) / 10
 	
 #possiblembs = [128, 192, 256, 320, 384, 448, 512, 576, 640, 704, 768, 832, 896, 960, 1024, 1088, 1152, 1216, 1280, 1344, 1408, 1472, 1536, 1600, 1664]
 #maxmbchosen = possiblembs[0]
 #for possiblemb in possiblembs:
 #	if maxmb < possiblemb and not maxmbchosen > maxmb:
 #		maxmbchosen = possiblemb
-print(maxmb, maxmbchosen)
+print("mem max", maxmb, "chosen", maxmbchosen, "MB")
 
-maxms = df.index[-1]
-maxmschosen = (int(maxms * 10) + 1) / 10
-print(maxms, maxmschosen)
+print("time max", maxms, "chosen", maxmschosen, "s")
 
 pylab.plot((0, len(df)), (maxmbchosen, maxmbchosen), label="memory-canvas")
 pylab.plot((0, len(df)), (maxmb, maxmb), linestyle="dashed")
@@ -51,5 +99,8 @@ pylab.xlim((0, maxmschosen * 1.02))
 
 pylab.xlabel("time(s)")
 pylab.ylabel("memory(MB)")
+pylab.title("Container memory use over time and microbilling period")
 pylab.legend()
 pylab.show()
+
+#pylab.savefig("x.pdf")

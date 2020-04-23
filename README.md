@@ -75,10 +75,10 @@ Short example with memory variations ([link](https://hub.docker.com/r/futils/res
 ```
 ./measure-image.sh "-v $PWD:/d/ futils/resize <image-name.jpg> 50%"
 ```
-A copy of the image to resize must be in the current directory.\
-Percentage can also be changed (works like a minimum)
+A copy of the image to resize must be in the current directory.
+Percentage can also be changed (works like a minimum).
 
-Some sample images (1, 2 or 5mb) can be downloaded with the `download-sample-image.sh` script in `/ref-data`
+Some sample images (1, 2 or 5mb) can be downloaded with the `download-sample-image.sh` script in `/ref-data`.
 
 #### Linux benchmarks
 Executes a bunch of benchmark tests (it takes a couple of minutes and requires a lot of diskspace) ([link](https://hub.docker.com/r/unimarijo/linux-benchmarks))

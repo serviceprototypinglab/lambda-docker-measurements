@@ -17,8 +17,9 @@ FILE="$CONTAINER-rawresults".csv
 
 #Obtain max memory usage
 ##get container's current status
-status="$(docker inspect --format '{{.State.Status}}' $CONTAINER 2>/dev/null)"
+#status="$(docker inspect --format '{{.State.Status}}' $CONTAINER 2>/dev/null)"
 
+status=
 while [ "$status" = "" ]
 do
     status="$(docker inspect --format '{{.State.Status}}' $CONTAINER 2>/dev/null)" 
@@ -52,6 +53,13 @@ done
 MEMORY=$(sort -k 1 -h aux | tail -n 1)
 
 rm aux
+
+if [ -z "$MEMORY" ]
+then
+    echo "Measurement failed"
+    rm $FILE
+    exit 1
+fi
 
 ##print found value
 echo "Max memory usage: $MEMORY bytes"

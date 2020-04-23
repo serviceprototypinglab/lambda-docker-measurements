@@ -3,7 +3,7 @@
 
 if [ -z "$1" ]
 then
-    echo "Syntax: $0 <size in mb>"
+    echo "Syntax: $0 <size in mb> # 1,2,5"
     exit 1
 fi
 
