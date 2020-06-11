@@ -1,17 +1,25 @@
 #!/bin/bash
 
-fn=Dresden_Garnisonkirche_gp.jpg
+fn[1]=q7nRis.jpg
+fn[2]=world.topo.200407.3x5400x2700.jpg
+fn[5]=Dresden_Garnisonkirche_gp.jpg
 
-if [ ! -f ref-data/$fn ]
-then
-	cd ref-data
-	./download-sample-image.sh 5
-	cd ..
-fi
-
-for i in `seq 1 10`
+for num in 1 2 5
 do
-	cp ref-data/$fn ref-data/sample.jpg
+	if [ ! -f ref-data/${fn[$num]} ]
+	then
+		cd ref-data
+		./download-sample-image.sh $num
+		cd ..
+	fi
+done
+
+for i in `seq 1 20`
+do
+	pic=`printf "%s\n" ${fn[@]} | shuf | head -1`
+	echo $pic
+
+	cp ref-data/$pic ref-data/sample.jpg
 	./measure-image.sh "-v $PWD/ref-data:/d/ futils/resize sample.jpg 50%"
 	rm ref-data/sample.jpg
 done
