@@ -85,3 +85,18 @@ Executes a bunch of benchmark tests (it takes a couple of minutes and requires a
 ```
 ./measure-image.sh unimarijo/linux-benchmarks
 ```
+
+#### Image background remover
+Short example with mostly flat memory usage ([link](https://hub.docker.com/r/futils/alpha))
+```
+./measure-image.sh "-v $PWD:/d/ futils/alpha <image-name.png> White 10"
+```
+A copy of the image to work with must be in the current directory.
+Color and fuzziness can be changed
+
+#### Image to monochrome
+Short example with slight memory variation ([link](https://hub.docker.com/r/futils/monochrome))
+```
+./measure-image.sh "-v $PWD:/d/ futils/monochrome <image-name.png> Gray"
+```
+A copy of the image to convert must be in the current directory
