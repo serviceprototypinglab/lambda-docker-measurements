@@ -100,3 +100,17 @@ Short example with slight memory variation ([link](https://hub.docker.com/r/futi
 ./measure-image.sh "-v $PWD:/d/ futils/monochrome <image-name.png> Gray"
 ```
 A copy of the image to convert must be in the current directory
+
+### Video transcoding
+Memory and time variations depend on size and type of video ([link](https://hub.docker.com/r/ntodd/video-transcoding))
+```
+./measure-image.sh "-v $PWD:/data ntodd/video-transcoding transcode-video --mp4 <video.mkv>"
+```
+A copy of the video to transcode must be in the current directory
+
+### File compresser
+Memory and time variations depend on size of directory ([link](https://hub.docker.com/r/wucke13/compress))
+```
+./measure-image.sh "-v $PWD:/d/ -w /d/ wucke13/compress gzip --best -r <directory>"
+```
+Everything in the mentioned directory will be compressed individually
