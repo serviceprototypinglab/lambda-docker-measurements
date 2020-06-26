@@ -75,9 +75,11 @@ echo "Container runtime: $DURATION milliseconds"
 
 DOCKERMEMORY="$(cat /sys/fs/cgroup/memory/docker/memory.limit_in_bytes)"
 
-if [ "$DOCKERMEMORY" -eq "$AWSMEMORY" ]
-then
-    ./calculate-aws-cost.sh $CONTAINER 1000000 $DURATION $MEMORY
-else
-    ./calculate-aws-cost.sh $CONTAINER 1000000 $DURATION $MEMORY false $AWSMEMORY
-fi
+#if [ "$DOCKERMEMORY" -eq "$AWSMEMORY" ]
+#then
+#    ./calculate-aws-cost.sh $CONTAINER 1000000 $DURATION $MEMORY
+#else
+#    ./calculate-aws-cost.sh $CONTAINER 1000000 $DURATION $MEMORY false $AWSMEMORY
+#fi
+
+python3 calculator/costcalculator.py 1000000 $DURATION $MEMORY False

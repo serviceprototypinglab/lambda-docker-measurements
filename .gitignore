@@ -2,3 +2,4 @@ aux
 *-rawresults*.csv
 *-results.dat
 /SampleJPGImage*.jpg
+.vscode/launch.json

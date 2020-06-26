@@ -1,0 +1,77 @@
+- blocked: ingress, egress:25, egress:udp, ptrace
+  contingentcalls: 1000000
+  contingentload: 400000
+  duration: 900
+  localdisk: 500
+  memory:
+    min: 128
+    max: 3008
+    granularity: 64
+  name: AWS Lambda
+  parameters:
+  - python:
+    - event
+    - context
+  pricecall: 2.0e-07
+  priceload: 1.667e-05
+  return:
+  - python: some_value
+  synonyms: "Lambda, Amazon Lambda, \u03BB"
+  timegranularity: 0.1
+- contingentcalls: 2000000
+  contingentload: 400000
+  duration: 540
+  memory:
+  - min: 128
+  - max: 2048
+  - granularity: 2x
+  name: Google Cloud Functions
+  pricecall: 4.0e-07
+  priceghzsec:
+  - tier1: 1.0e-05
+  - tier2: 1.4e-05
+  priceload:
+  - tier1: 2.5e-06
+  - tier2: 3.5e-06
+  synonyms: GCF
+  timegranularity: 0.1
+- contingentcalls: 0
+  contingentload: 400000
+  duration: 600
+  memory:
+  - min: 1
+  - granularity: 1
+  name: IBM Cloud Functions
+  pricecall: 0
+  priceload: 1.7e-05
+  synonyms: IBM OpenWhisk
+  timegranularity: 0.1
+- contingentcalls: 1000000
+  contingentload: 400000
+  duration: 600
+  memory:
+  - min: 128
+  - max: 1536
+  - granularity: 128
+  name: Microsoft Azure Functions
+  pricecall: 2.0e-07
+  priceload: 1.6e-05
+  synonyms: Azure Functions
+  timegranularity: 0.001
+- contingentcalls: 1000000
+  contingentload: 400000
+  duration: unlimited
+  memory:
+  - min: 64
+  - granularity: 64
+  name: Alibaba Cloud Function Compute
+  pricecall: 2.0e-07
+  priceload: 1.6384e-05
+  timegranularity: 0.1
+- contingentcalls: 2000000
+  contingentload: 400000
+  duration: unknown
+  name: Oracle Functions
+  pricecall: 2.0e-07
+  priceload: 1.417e-05
+  url: https://www.oracle.com/cloud/cloud-native/functions

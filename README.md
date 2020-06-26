@@ -108,9 +108,10 @@ Memory and time variations depend on size and type of video ([link](https://hub.
 ```
 A copy of the video to transcode must be in the current directory
 
-### File compresser
+### File compresser - decompresser
 Memory and time variations depend on size of directory ([link](https://hub.docker.com/r/wucke13/compress))
 ```
 ./measure-image.sh "-v $PWD:/d/ -w /d/ wucke13/compress gzip --best -r <directory>"
 ```
-Everything in the mentioned directory will be compressed individually
+
+Another compresser example ([link](https://hub.docker.com/r/lion86/compression-toolkit))

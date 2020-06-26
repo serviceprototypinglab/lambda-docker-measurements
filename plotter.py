@@ -3,6 +3,8 @@
 import pylab
 import pandas as pd
 import sys
+import glob
+import math
 
 def conv(x):
 	ts = int(x[0:2]) * 3600 + int(x[3:5]) * 60 + int(x[6:8]) + int(x[9:12]) / 1000
@@ -11,11 +13,12 @@ def conv(x):
 def ceildiv(x, d):
 	return (x + d - 1) // d
 
-if len(sys.argv) < 2:
+""" if len(sys.argv) < 2:
 	print("Syntax: plotter.py <csvfile> [<csvfile>...]", file=sys.stderr)
-	sys.exit(1)
+	sys.exit(1) """
 
-csvfiles = sys.argv[1:]
+# csvfiles = sys.argv[1:]
+csvfiles = glob.glob("autostats*.csv")
 
 ax = None
 maxmb = None
@@ -51,16 +54,17 @@ for csvfile in csvfiles:
 
     if len(csvfiles) > 1:
         for row in df.iterrows():
-            htime = int(row[0] * 10) / 10
+            #htime = int(row[0] * 10) / 10
+            htime = round(row[0], 1)
             mem = row[1]["memory(MB)"]
             #print("-", mem, "@", row[0], "→", htime)
-            if not htime in hull or mem > hull[htime]:
+            if not math.isnan(mem) and (not htime in hull or mem > hull[htime]):
                 hull[htime] = mem
 
 if hull:
     hull = {k: hull[k] for k in sorted(hull)}
     print("Hull", hull)
-    ax.plot(hull.keys(), hull.values(), color=(0, 0, 0), linewidth=3, label="memory-hull")
+    ax.plot(list(hull.keys()), list(hull.values()), color=(0, 0, 0), linewidth=3, label="memory-hull")
     uhull = {}
     hkeys = list(hull.keys())
     scaletime = 2
@@ -70,7 +74,7 @@ if hull:
             if hull[hkeys[i + scaletime]] > hull[hkeys[i]]:
                 scale = hull[hkeys[i + scaletime]] - hull[hkeys[i]]
         uhull[hkeys[i]] = hull[hkeys[i]] + scale
-    ax.plot(uhull.keys(), uhull.values(), color=(0.6, 0, 0), linewidth=2, label="memory-hull-upscale")
+    ax.plot(list(uhull.keys()), list(uhull.values()), color=(0.6, 0, 0), linewidth=2, label="memory-hull-upscale")
 
 if maxmb > 128:
 	possiblembs = ceildiv(maxmb - 128, 64)
