@@ -89,6 +89,16 @@ A copy of the image to resize must be in the current directory.
 Percentage can also be changed (works like a minimum).
 
 Some sample images (1, 2 or 5mb) can be downloaded with the `download-sample-image.sh` script in `/ref-data`.
+To automate multiple executions with multiple image sizes, use
+```
+./measure-image-hull.sh
+```
+To further try memory autotuning, train and test as follows
+```
+./measure-image-hull.sh False
+cp ref-data/Dresden_Garnisonkirche_gp.jpg ref-data/sample.jpg
+./measure-image.sh "-v $PWD:/d/ futils/resize ref-data/sample.jpg 50%" uhull.json
+```
 
 #### Linux benchmarks
 Executes a bunch of benchmark tests (it takes a couple of minutes and requires a lot of diskspace) ([link](https://hub.docker.com/r/unimarijo/linux-benchmarks))

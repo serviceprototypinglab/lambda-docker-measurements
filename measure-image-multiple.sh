@@ -19,6 +19,3 @@ for i in `seq 1 $2`;
 do
     (docker run --name $autoname $IMAGE & ./stats.sh $autoname); docker rm $autoname
 done  
-
-
-

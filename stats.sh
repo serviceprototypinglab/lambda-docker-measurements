@@ -1,9 +1,9 @@
 #!/bin/bash
-# script measurecost <CONTAINER>
+# script measurecost(stats.sh) <CONTAINER> <UHULL>
 
 if [ -z $1 ]
 then
-    echo "Syntax: $0 <container>"
+    echo "Syntax: $0 <container> [<uhullfile.json>]"
     exit 1
 fi
 
@@ -14,6 +14,9 @@ sleep 0.01
 :> aux
 FILE="$CONTAINER-rawresults".csv
 :> $FILE
+
+#Get upscaled memory consumption hull file for dynamic memory autotuning, if specified
+UHULL=$2
 
 #Obtain max memory usage
 ##get container's current status
@@ -26,7 +29,7 @@ do
     status="$(docker inspect --format '{{.State.Status}}' $CONTAINER 2>/dev/null)" 
     if [ "$status" != "$oldstatus" ]
     then
-    	echo "init-status ($status)"
+    	echo ":: init-status ($status)"
 	oldstatus=$status
     fi
 done
@@ -38,12 +41,19 @@ while [ $status != "running" ]
 do
     sleep 0.001
     status="$(docker inspect --format '{{.State.Status}}' $CONTAINER)"
-    echo "run-status ($status)"
+    echo ":: run-status ($status)"
 done
 
 echo "$(date --date=$(docker inspect --format='{{.State.StartedAt}}' $CONTAINER) +"%T.%3N"),0" >> $FILE
 
+if [ ! -z "$UHULL" ]
+then
+	echo ":: uhull-status (launch)"
+	python3 autotuner.py $CONTAINER $UHULL &
+fi
+
 AWSMEMORY="$(cat /sys/fs/cgroup/memory/docker/$CONTAINERID/memory.limit_in_bytes)"
+lim=$AWSMEMORY
 
 ##loop: while the container is running, get the current memory usage into the aux file
 while [ $status != "exited" ]
@@ -51,8 +61,17 @@ do
     sleep 0.001
     ##mem="$(docker stats --no-stream --format "{{.MemUsage}}" $CONTAINER)"
     mem="$(cat /sys/fs/cgroup/memory/docker/$CONTAINERID/memory.usage_in_bytes)"
+    if [ ! -z "$UHULL" ]
+    then
+    	lim="$(cat /sys/fs/cgroup/memory/docker/$CONTAINERID/memory.limit_in_bytes)"
+    fi
     echo $mem >> aux
-    echo "$(date +"%T.%3N"),$mem" >> $FILE
+    if [ ! -z "$UHULL" ]
+    then
+    	echo "$(date +"%T.%3N"),$mem,$lim" >> $FILE
+    else
+    	echo "$(date +"%T.%3N"),$mem" >> $FILE
+    fi
     status="$(docker inspect --format '{{.State.Status}}' $CONTAINER)"
 done
 

@@ -5,6 +5,7 @@ import pandas as pd
 import sys
 import glob
 import math
+import json
 
 def conv(x):
 	ts = int(x[0:2]) * 3600 + int(x[3:5]) * 60 + int(x[6:8]) + int(x[9:12]) / 1000
@@ -26,7 +27,7 @@ maxms = None
 hull = {}
 l = "memory(MB)*"
 for csvfile in csvfiles:
-    df = pd.read_csv(csvfile, header=None, names=["timestamp", "memory(MB)"])
+    df = pd.read_csv(csvfile, header=None, names=["timestamp", "memory(MB)", "limit(MB)"])
 
     df["memory(MB)"] /= 1048576
     initms = conv(df["timestamp"][0])
@@ -34,8 +35,13 @@ for csvfile in csvfiles:
     #del df["timestamp"]
     df = df.set_index("time")
 
+    # Cut away default "unlimited" Docker limit of several petabytes...
+    df["limit(MB)"][df["limit(MB)"] > 1000000000000] = 0
+    df["limit(MB)"] /= 1048576
+
     if len(csvfiles) == 1:
         ax = df[["memory(MB)"]].plot() #This is the line
+        ax.plot(df[["limit(MB)"]], color=(0.8, 0.8, 0.8), linewidth=5)
     else:
         # avoid multiple labels
         if not ax:
@@ -74,7 +80,12 @@ if hull:
             if hull[hkeys[i + scaletime]] > hull[hkeys[i]]:
                 scale = hull[hkeys[i + scaletime]] - hull[hkeys[i]]
         uhull[hkeys[i]] = hull[hkeys[i]] + scale
+    print("u-Hull", hull)
     ax.plot(list(uhull.keys()), list(uhull.values()), color=(0.6, 0, 0), linewidth=2, label="memory-hull-upscale")
+
+    f = open("uhull.json", "w")
+    json.dump(uhull, f)
+    f.close()
 
 if maxmb > 128:
 	possiblembs = ceildiv(maxmb - 128, 64)
@@ -105,6 +116,6 @@ pylab.xlabel("time(s)")
 pylab.ylabel("memory(MB)")
 pylab.title("Container memory use over time and microbilling period")
 pylab.legend()
-pylab.show()
 
+pylab.show()
 #pylab.savefig("x.pdf")

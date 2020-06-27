@@ -1,7 +1,11 @@
 #!/bin/bash
+# syntax: measure-image-hull.sh True(default)|False # indicating whether shuffling should be used
 
-fn[1]=q7nRis.jpg
-fn[2]=world.topo.200407.3x5400x2700.jpg
+if [ "$1" != "False" ]
+then
+	fn[1]=q7nRis.jpg
+	fn[2]=world.topo.200407.3x5400x2700.jpg
+fi
 fn[5]=Dresden_Garnisonkirche_gp.jpg
 
 for num in 1 2 5
