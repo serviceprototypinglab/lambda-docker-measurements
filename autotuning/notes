@@ -1,0 +1,48 @@
+# https://docs.docker.com/config/containers/resource_constraints/
+
+docker run --rm -it --memory 5000000 alpine
+
+  WARNING: Your kernel does not support swap limit capabilities or the cgroup is not mounted. Memory limited without swap.
+
+docker run --rm -it alpine
+
+docker ps -a # get container id
+id=200fe4a780b0 # adapt as needed
+docker update --memory 5000000 $id # 4 MB would be minimum
+
+  Your kernel does not support swap limit capabilities or the cgroup is not mounted. Memory limited without swap.
+
+docker inspect $id | grep Memory
+
+  "Memory": 5000000,
+  "KernelMemory": 0,
+  "KernelMemoryTCP": 0,
+  "MemoryReservation": 0,
+  "MemorySwap": -1,
+  "MemorySwappiness": null,
+
+# => https://www.serverlab.ca/tutorials/containers/docker/how-to-limit-memory-and-cpu-for-docker-containers/
+# in /etc/default/grub:
+# GRUB_CMDLINE_LINUX="cgroup_enable=memory swapaccount=1"
+# + update-grub + reboot
+
+/ # free -m
+
+                total        used        free      shared  buff/cache   available
+  Mem:          31777        7458        1891         926       22427       24710
+  Swap:           975         176         799
+
+# And yet...
+
+docker-stats
+
+  CONTAINER ID NAME          CPU % MEM USAGE / LIMIT MEM %  NET I/O     BLOCK I/O PIDS
+  9814e762cc18 wizardly_buck 0.00% 988KiB / 4MiB     24.12% 3.11kB / 0B 0B / 0B   1
+
+while true; do dd if=/dev/urandom bs=1 count=10 | hexdump -C; sleep 0.1; done
+
+# -> killed because of OOM
+
+echo $?
+
+  137 # Container received a SIGKILL

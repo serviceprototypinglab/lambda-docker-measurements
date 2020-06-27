@@ -9,7 +9,7 @@ fi
 
 #Get container name
 CONTAINER=$1
-sleep 0.1
+sleep 0.01
 #Empty the stats aux file
 :> aux
 FILE="$CONTAINER-rawresults".csv
@@ -19,10 +19,16 @@ FILE="$CONTAINER-rawresults".csv
 ##get container's current status
 #status="$(docker inspect --format '{{.State.Status}}' $CONTAINER 2>/dev/null)"
 
+oldstatus=x
 status=
 while [ "$status" = "" ]
 do
     status="$(docker inspect --format '{{.State.Status}}' $CONTAINER 2>/dev/null)" 
+    if [ "$status" != "$oldstatus" ]
+    then
+    	echo "init-status ($status)"
+	oldstatus=$status
+    fi
 done
 
 CONTAINERID="$(docker inspect --format '{{.Id}}' $CONTAINER)"
@@ -32,6 +38,7 @@ while [ $status != "running" ]
 do
     sleep 0.001
     status="$(docker inspect --format '{{.State.Status}}' $CONTAINER)"
+    echo "run-status ($status)"
 done
 
 echo "$(date --date=$(docker inspect --format='{{.State.StartedAt}}' $CONTAINER) +"%T.%3N"),0" >> $FILE
@@ -75,11 +82,13 @@ echo "Container runtime: $DURATION milliseconds"
 
 DOCKERMEMORY="$(cat /sys/fs/cgroup/memory/docker/memory.limit_in_bytes)"
 
-#if [ "$DOCKERMEMORY" -eq "$AWSMEMORY" ]
-#then
-#    ./calculate-aws-cost.sh $CONTAINER 1000000 $DURATION $MEMORY
-#else
-#    ./calculate-aws-cost.sh $CONTAINER 1000000 $DURATION $MEMORY false $AWSMEMORY
-#fi
+echo "--- old cost calculation"
+if [ "$DOCKERMEMORY" -eq "$AWSMEMORY" ]
+then
+    ./calculate-aws-cost.sh $CONTAINER 1000000 $DURATION $MEMORY
+else
+    ./calculate-aws-cost.sh $CONTAINER 1000000 $DURATION $MEMORY false $AWSMEMORY
+fi
 
+echo "--- new cost calculation"
 python3 calculator/costcalculator.py 1000000 $DURATION $MEMORY False

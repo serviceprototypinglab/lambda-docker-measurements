@@ -57,17 +57,27 @@ A file called `autostats-N.dat` will be created containing the results of each t
 * Overhead cost($)
 
 ### Some examples
+If unsure which to take, take the Sleep example.
 
 #### Hello world
 Very short-lived example ([link](https://hub.docker.com/_/hello-world))
 ```
 ./measure-image.sh hello-world
 ```
+Note, this executes so quickly that the measurement may fail due to lack of precision timing.
 
 #### Sleep
 A simple image with a 30 second sleep function ([link](https://hub.docker.com/r/yyekhlef/sleep))
 ```
 ./measure-image.sh yyekhlef/sleep
+```
+With that one, you can emulate a higher (but not lower) FaaS memory allocation than 128 MB
+```
+./measure-image.sh "--memory=256MB yyekhlef/sleep"
+```
+To get the .dat file for accurate memory tracking, use
+```
+./measure-image-multiple.sh "--memory=256MB yyekhlef/sleep" 2
 ```
 
 #### Image resizer

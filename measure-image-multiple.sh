@@ -1,7 +1,7 @@
 #!/bin/bash
 # syntax: measure-image-multiple.sh <CONTAINERIMAGE> <NUMBEROFTESTS> (must be non-interactive!)
 
-if [ (-z "$2") -o (-z "$1") ]
+if [ -z "$2" -o -z "$1" ]
 then
     echo "Syntax: $0 <noninteractive-containerimage> <numberoftests>"
     exit 1
