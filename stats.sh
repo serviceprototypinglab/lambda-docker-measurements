@@ -42,6 +42,12 @@ do
     sleep 0.001
     status="$(docker inspect --format '{{.State.Status}}' $CONTAINER)"
     echo ":: run-status ($status)"
+    if [ $status = "exited" ]
+    then
+        echo "Measurement failed prematurily before startup"
+        rm $FILE
+	exit 1
+    fi
 done
 
 echo "$(date --date=$(docker inspect --format='{{.State.StartedAt}}' $CONTAINER) +"%T.%3N"),0" >> $FILE

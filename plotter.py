@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+#
+# Syntax: plotter.py [nocanvas]
 
 import pylab
 import pandas as pd
@@ -17,6 +19,10 @@ def ceildiv(x, d):
 """ if len(sys.argv) < 2:
 	print("Syntax: plotter.py <csvfile> [<csvfile>...]", file=sys.stderr)
 	sys.exit(1) """
+
+canvasplot = True
+if len(sys.argv) == 2 and sys.argv[1] == "nocanvas":
+    canvasplot = False
 
 # csvfiles = sys.argv[1:]
 csvfiles = glob.glob("autostats*.csv")
@@ -67,7 +73,7 @@ for csvfile in csvfiles:
             if not math.isnan(mem) and (not htime in hull or mem > hull[htime]):
                 hull[htime] = mem
 
-if hull:
+if hull and canvasplot:
     hull = {k: hull[k] for k in sorted(hull)}
     print("Hull", hull)
     ax.plot(list(hull.keys()), list(hull.values()), color=(0, 0, 0), linewidth=3, label="memory-hull")
@@ -106,11 +112,12 @@ print("mem max", maxmb, "chosen", maxmbchosen, "MB")
 
 print("time max", maxms, "chosen", maxmschosen, "s")
 
-pylab.plot((0, len(df)), (maxmbchosen, maxmbchosen), label="memory-canvas")
-pylab.plot((0, len(df)), (maxmb, maxmb), linestyle="dashed")
-pylab.plot((maxmschosen, maxmschosen), (0, maxmbchosen), label="time-canvas")
-pylab.plot((maxms, maxms), (0, maxmbchosen), linestyle="dashed")
-pylab.xlim((0, maxmschosen * 1.02))
+if canvasplot:
+    pylab.plot((0, len(df)), (maxmbchosen, maxmbchosen), label="memory-canvas")
+    pylab.plot((0, len(df)), (maxmb, maxmb), linestyle="dashed")
+    pylab.plot((maxmschosen, maxmschosen), (0, maxmbchosen), label="time-canvas")
+    pylab.plot((maxms, maxms), (0, maxmbchosen), linestyle="dashed")
+    pylab.xlim((0, maxmschosen * 1.02))
 
 pylab.xlabel("time(s)")
 pylab.ylabel("memory(MB)")
