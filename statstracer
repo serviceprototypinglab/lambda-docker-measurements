@@ -1,5 +1,5 @@
 #!/bin/bash
-# script measurecost(stats.sh) <CONTAINER> <UHULL>
+# script measurecost(statstracer) <CONTAINER> <UHULL>
 
 if [ -z $1 ]
 then
@@ -55,30 +55,34 @@ echo "$(date --date=$(docker inspect --format='{{.State.StartedAt}}' $CONTAINER)
 if [ ! -z "$UHULL" ]
 then
 	echo ":: uhull-status (launch)"
-	python3 autotuner.py $CONTAINER $UHULL &
+	./autotuner $CONTAINER $UHULL &
 fi
 
-AWSMEMORY="$(cat /sys/fs/cgroup/memory/docker/$CONTAINERID/memory.limit_in_bytes)"
-lim=$AWSMEMORY
+MEMORYLIM="$(cat /sys/fs/cgroup/memory/docker/$CONTAINERID/memory.limit_in_bytes)"
+lim=$MEMORYLIM
 
 ##loop: while the container is running, get the current memory usage into the aux file
 while [ $status != "exited" ]
 do
     sleep 0.001
     ##mem="$(docker stats --no-stream --format "{{.MemUsage}}" $CONTAINER)"
+    dt=$(date +"%T.%3N")
     mem="$(cat /sys/fs/cgroup/memory/docker/$CONTAINERID/memory.usage_in_bytes)"
     if [ ! -z "$UHULL" ]
     then
     	lim="$(cat /sys/fs/cgroup/memory/docker/$CONTAINERID/memory.limit_in_bytes)"
     fi
     echo $mem >> aux
-    if [ ! -z "$UHULL" ]
-    then
-    	echo "$(date +"%T.%3N"),$mem,$lim" >> $FILE
-    else
-    	echo "$(date +"%T.%3N"),$mem" >> $FILE
-    fi
     status="$(docker inspect --format '{{.State.Status}}' $CONTAINER)"
+    if [ $status != "exited" ]
+    then
+	    if [ ! -z "$UHULL" ]
+	    then
+		echo "$dt,$mem,$lim" >> $FILE
+	    else
+		echo "$dt,$mem" >> $FILE
+	    fi
+    fi
 done
 
 ##sort memory usage file and get the highest value
@@ -108,11 +112,11 @@ echo "Container runtime: $DURATION milliseconds"
 DOCKERMEMORY="$(cat /sys/fs/cgroup/memory/docker/memory.limit_in_bytes)"
 
 echo "--- old cost calculation"
-if [ "$DOCKERMEMORY" -eq "$AWSMEMORY" ]
+if [ "$DOCKERMEMORY" -eq "$MEMORYLIM" ]
 then
-    ./calculate-aws-cost.sh $CONTAINER 1000000 $DURATION $MEMORY
+    ./costcalculator $CONTAINER 1000000 $DURATION $MEMORY
 else
-    ./calculate-aws-cost.sh $CONTAINER 1000000 $DURATION $MEMORY false $AWSMEMORY
+    ./costcalculator $CONTAINER 1000000 $DURATION $MEMORY false $MEMORYLIM
 fi
 
 echo "--- new cost calculation"

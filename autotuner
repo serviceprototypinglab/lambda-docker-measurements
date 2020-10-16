@@ -1,7 +1,13 @@
+#!/usr/bin/env python3
+
 import json
 import sys
 import time
 import os
+
+if len(sys.argv) != 3:
+    print("Syntax: autotuner <container-id> <uhull.json-file>", file=sys.stderr)
+    exit(-1)
 
 container = sys.argv[1]
 uhull = sys.argv[2]

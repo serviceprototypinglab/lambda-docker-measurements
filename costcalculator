@@ -1,0 +1,112 @@
+#!/bin/bash
+#syntax: costcalculator <CONTAINER> <NREQUESTS> <DURATION> <MEMORY> [FREE] [MEMORYTIER]
+# CONTAINER is the name of the container
+# NREQUESTS is the number of requests to calculate the cost on
+# DURATION is the duration of the function (in ms)
+# MEMORY is the total memory in bytes allocated to the function. 
+# FREE is a boolean indicating whether to consider the free tier requests and computation time or not. By default is false
+# MEMORYTIER is the provider's memory tier used by the function.
+## If not set, it will be rounded up to the nearest value available from MEMORY.
+## If set but tier is non existent, it will be rounded up to the nearest value available from the set value.
+
+if [ $# -lt 4 ]
+then
+	echo "Insufficient arguments. Check source for invocation help." >&2
+	exit 1
+fi
+
+# Ceiling division function
+ceildiv() {
+    echo $((($1+$2-1)/$2));
+}
+
+#Set container arguments
+NREQUESTS=$2
+DURATION=$3
+MEMORY="$(ceildiv $4 1048576)"
+
+if [ -z $5 ]
+then
+    FREE=false
+else
+    FREE=$5
+fi
+
+#Set provider values
+#PROV_REQUESTS="$(ceildiv $NREQUESTS 1000000)" Counts only per million of requests
+PROV_REQUESTS=$(bc <<< $NREQUESTS/1000000)
+PROV_DURATION="$(ceildiv $DURATION 100)"
+
+if [ -z $6 ]
+then
+    aux_mem=$(($MEMORY-128)) 
+else
+    aux_mem="$(ceildiv $6 1048576)"
+    aux_mem=$(($aux_mem-128))
+fi
+
+if [ "$aux_mem" -gt "0" ]
+then
+    prov_mult="$(ceildiv $aux_mem 64)"
+else
+    prov_mult=0
+fi
+
+PROV_MEMORY=$((128+$prov_mult*64))
+
+while read mem freeseconds compute freerequests invocation
+do
+    if [ "$mem" = "$PROV_MEMORY" ]
+    then
+        FREE_TIER_SECONDS=$freeseconds
+        COSTCOMPUTE=$compute
+        NET_COSTCOMPUTE=$(bc -l <<< "$compute*$MEMORY/$PROV_MEMORY")
+        FREE_REQUESTS=$freerequests
+        COSTINVOCATION=$invocation
+        break
+    fi
+done < calculator/costs_aws.dat
+
+#Calculate cost
+if [ "$FREE" = true ]
+then
+    # Calculate the cost with free requests and computation time
+    aux_duration=$(bc <<< $PROV_DURATION*$PROV_REQUESTS*1000000-$FREE_TIER_SECONDS*10)
+    aux_requests=$(($PROV_REQUESTS-$FREE_REQUESTS))
+    aux_net_duration=$(bc <<< $DURATION*$PROV_REQUESTS*10000-$FREE_TIER_SECONDS*10)
+    
+    PROV_COST=$(bc <<< $aux_duration*$COSTCOMPUTE+$aux_requests*$COSTINVOCATION)
+    PROV_NETCOST=$(bc <<< $aux_net_duration*$NET_COSTCOMPUTE+$aux_requests*$COSTINVOCATION)
+    PERC_WASTEDMEMORY=$(bc -l <<< "(($aux_net_duration*$COSTCOMPUTE+$aux_requests*$COSTINVOCATION)/$PROV_COST)*100-100")
+    PERC_WASTEDTIME=$(bc -l <<< "(($aux_duration*$NET_COSTCOMPUTE+$aux_requests*$COSTINVOCATION)/$PROV_COST)*100-100")
+else
+    # Calculate the cost without free requests and computation time
+    PROV_COST=$(bc <<< $PROV_DURATION*$PROV_REQUESTS*1000000*$COSTCOMPUTE+$PROV_REQUESTS*$COSTINVOCATION)
+    PROV_NETCOST=$(bc <<< $DURATION*$PROV_REQUESTS*10000*$NET_COSTCOMPUTE+$PROV_REQUESTS*$COSTINVOCATION)
+    PERC_WASTEDMEMORY=$(bc -l <<< "(($DURATION*$PROV_REQUESTS*10000*$COSTCOMPUTE+$PROV_REQUESTS*$COSTINVOCATION)/$PROV_NETCOST)*100-100")
+    PERC_WASTEDTIME=$(bc -l <<< "(($PROV_DURATION*$PROV_REQUESTS*1000000*$NET_COSTCOMPUTE+$PROV_REQUESTS*$COSTINVOCATION)/$PROV_NETCOST)*100-100")
+fi
+
+OVERHEAD_COST=$(bc <<< $PROV_COST-$PROV_NETCOST)
+
+#Print results
+echo "=== AWS ==="
+echo "The function used $MEMORY MB of memory and was allocated $PROV_MEMORY MB by the cloud provider."
+echo "The total cost for FaaS (AWS Lambda) for $PROV_REQUESTS million requests per month would be $`printf "%.2f" $PROV_COST`"
+echo "The net cost would be $`printf "%.2f" $PROV_NETCOST`, and the overhead cost $`printf "%.2f" $OVERHEAD_COST`"
+
+echo "The price increases `printf "%.2f" $PERC_WASTEDMEMORY`% due to wasted memory, and `printf "%.2f" $PERC_WASTEDTIME`% due to wasted computation time"
+
+#Calculate waste
+DURATION_WASTE=$(($PROV_DURATION*100-$DURATION))
+MEMORY_WASTE="$(($PROV_MEMORY-$MEMORY))"
+
+echo "$DURATION_WASTE milliseconds of computation time are being wasted."
+echo "$MEMORY_WASTE MB of memory are being wasted"
+
+#Write results into a file
+FILE="$1-results".dat
+if test -f "$FILE"; then
+    #Time(ms)    Memory(MB)    Prov Time(ms)    Prov Memory(ms)    Prov Cost($)    Net cost($)    Overhead cost($)
+    echo "$DURATION $MEMORY $PROV_DURATION   $PROV_MEMORY $PROV_COST    $PROV_NETCOST    $OVERHEAD_COST" >> $FILE
+fi

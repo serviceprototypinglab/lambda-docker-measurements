@@ -1,5 +1,5 @@
 #!/bin/bash
-# syntax: measure-image-multiple.sh <CONTAINERIMAGE> <NUMBEROFTESTS> (must be non-interactive!)
+# syntax: functracer-multi <CONTAINERIMAGE> <NUMBEROFTESTS> (must be non-interactive!)
 
 if [ -z "$2" -o -z "$1" ]
 then
@@ -17,5 +17,5 @@ FILE="$autoname-results".dat
 
 for i in `seq 1 $2`;
 do
-    (docker run --name $autoname $IMAGE & ./stats.sh $autoname); docker rm $autoname
+    (docker run --name $autoname $IMAGE & ./statstracer $autoname); docker rm $autoname
 done  

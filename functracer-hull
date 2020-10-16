@@ -1,5 +1,5 @@
 #!/bin/bash
-# syntax: measure-image-hull.sh True(default)|False # indicating whether shuffling should be used
+# syntax: functracer-hull True(default)|False # indicating whether shuffling should be used
 
 if [ "$1" != "False" ]
 then
