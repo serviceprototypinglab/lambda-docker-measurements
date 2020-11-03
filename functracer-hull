@@ -24,6 +24,6 @@ do
 	echo $pic
 
 	cp ref-data/$pic ref-data/sample.jpg
-	./measure-image.sh "-v $PWD/ref-data:/d/ futils/resize sample.jpg 50%"
+	./functracer "-v $PWD/ref-data:/d/ futils/resize sample.jpg 50%"
 	rm ref-data/sample.jpg
 done

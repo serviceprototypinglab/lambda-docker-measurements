@@ -18,6 +18,9 @@ f = open(uhull)
 tune = json.load(f)
 print("{autotune}", len(tune), "steps")
 
+# --memory-swap added for newer Docker versions (deemed necessary on Ubuntu 20.10) to avoid error message:
+# Memory limit should be smaller than already set memoryswap limit, update the memoryswap at the same time)
+
 numsteps = 0
 oldstep = None
 s_time = time.time()
@@ -25,7 +28,7 @@ while True:
     n_time = str(round(time.time() - s_time, 1))
     if n_time in tune and n_time != oldstep:
         print("{autotune} step", n_time, tune[n_time])
-        os.system(f"docker update --memory {tune[n_time]}M {container} >/dev/null")
+        os.system(f"docker update --memory {tune[n_time]}M --memory-swap -1 {container} >/dev/null")
         oldstep = n_time
         numsteps += 1
     if numsteps == len(tune):
